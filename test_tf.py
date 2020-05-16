@@ -66,7 +66,7 @@ def main():
               metrics=["accuracy"])
     
     history = model.fit(train_ds,  
-                    epochs=30, 
+                    epochs=100, 
                     steps_per_epoch=2,
                     validation_steps=2,
                     validation_data=validation_ds)
@@ -78,8 +78,8 @@ def main():
     print("loss: {:.2f}".format(loss0))
     print("accuracy: {:.2f}".format(accuracy0))
 
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
