@@ -13,18 +13,17 @@ locations = {}
 # print("start looping")
 for lat in np.arange(33.0672, 34.0854, 0.01):
     for lon in np.arange(-112.7143, -111.4015, 0.01):
-        #TODO: get GEO_ID
-        # print(lon)
-        # print(lat)
         lat_rd = round(lat, 4)
         lon_rd = round(lon, 4)
-        cg_obj = cg.coordinates(lon_rd, lat_rd)
+        try:
+            cg_obj = cg.coordinates(lon_rd, lat_rd)
+        except:
+            continue
+        # if len(cg_obj['2010 Census Blocks']) == 0:
+        #     continue
         raw_geoid = cg_obj['2010 Census Blocks'][0]['GEOID']
         geoid = raw_geoid[0:11]
-        # print(geoid)
-        # print(GEO_ID_income_dict)
 
-        # print("first check")
         loc = str(lat_rd) + "," + str(lon_rd)
         if geoid in GEO_ID_income_dict and img_dl.checkLatLongImage(loc) == "OK": #GEO_ID is in database and streetview image exists
             #Store labels
@@ -34,7 +33,6 @@ for lat in np.arange(33.0672, 34.0854, 0.01):
         
             #Get image and store location
             locations[index] = loc
-            # print(loc)
             img_dl.getStreetViewImage(loc, SaveLoc, index);
 
             if index % 100 == 0:
@@ -44,6 +42,7 @@ for lat in np.arange(33.0672, 34.0854, 0.01):
         if iterations % 100 == 0:
             print("Iteration " + str(iterations) + " complete!")
         iterations += 1
+        # print(str(iterations))
 
 geoid_income_utils.writeLabelsToFile("index_to_latlong", locations)
 geoid_income_utils.writeLabelsToFile("labels", labels)
