@@ -1,12 +1,13 @@
 import urllib.parse
 import urllib.request, os
 import requests
-import LatLongData
+#import LatLongData
 
 myloc = r"./StreetView Images" #Replace with correct location
 mysatloc = r"./Location Satellite Images"
 key = "&key=" + "AIzaSyA8RcVdojD1-GWoNTOPSES8KPGC1swbp2w" #got banned after ~100 requests with no key or after 25,000 requests without signature
 
+#Gets streetview image given "Loc" (lat/long), saves at filepath "SaveLoc" as "index".jpg
 def getStreetViewImage(Loc, SaveLoc, index):
     base = "https://maps.googleapis.com/maps/api/streetview?size=224x224&source=outdoor&location="
     MyUrl = base + urllib.parse.quote_plus(Loc) + key #added url encoding
@@ -38,7 +39,8 @@ tests = {1: "37.79101665,-122.3991486", #01ST ST \ BUSH ST \ MARKET ST
 #db = tests
 
 #Actual list of coordinates
-db = LatLongData.getCoords()
+db = {}
+#db = LatLongData.getCoords()
 
 for loc in db:
     getStreetViewImage(Loc=db[loc], SaveLoc=myloc, index = loc)
