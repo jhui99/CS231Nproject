@@ -1,6 +1,7 @@
 import urllib.parse
 import urllib.request, os
 import requests
+import numpy as np
 #import LatLongData
 
 myloc = r"./StreetView Images" #Replace with correct location
@@ -16,6 +17,14 @@ def getStreetViewImage(Loc, SaveLoc, index):
     fi = str(index) + ".jpg"
     urllib.request.urlretrieve(MyUrl, os.path.join(SaveLoc, fi))
 
+def get360StreetViewImage(Loc, SaveLoc, index):
+    base = "https://maps.googleapis.com/maps/api/streetview?size=224x224&source=outdoor&location="
+    MyUrl = base + urllib.parse.quote_plus(Loc) + key #added url encoding
+    for deg in range(0, 360, 60):
+        img_url = MyUrl + "&heading=" + str(deg)
+        fi = str(index) + "-" + str(deg) +".jpg"
+        urllib.request.urlretrieve(img_url, os.path.join(SaveLoc, fi))
+
 def checkLatLongImage(Loc):
     metadata_base = "https://maps.googleapis.com/maps/api/streetview/metadata?&location=" 
     metadata_url = metadata_base + urllib.parse.quote_plus(Loc) + key #added url encoding
@@ -28,6 +37,9 @@ def getSatelliteImage(Loc, SaveLoc, index):
     MyUrl = base + urllib.parse.quote_plus(Loc) + key #added url encoding
     fi = str(index) + "_sat.jpg"
     urllib.request.urlretrieve(MyUrl, os.path.join(SaveLoc, fi))
+
+def isSameImage(image1, image2):
+    return image1.shape == image2.shape and not(np.bitwise_xor(image1,image2).any())
 
 #List of coordinates for testing
 tests = {1: "37.79101665,-122.3991486", #01ST ST \ BUSH ST \ MARKET ST
