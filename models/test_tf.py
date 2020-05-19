@@ -66,9 +66,9 @@ def main():
               metrics=["accuracy"])
     
     history = model.fit(train_ds,  
-                    epochs=100, 
-                    steps_per_epoch=2,
-                    validation_steps=2,
+                    epochs=100,
+                    steps_per_epoch=3,
+                    validation_steps=3,
                     validation_data=validation_ds)
 
     validation_steps = 20
