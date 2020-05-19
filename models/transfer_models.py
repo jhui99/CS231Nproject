@@ -1,6 +1,9 @@
 import tensorflow as tf
 import os
 import csv
+import numpy as np
+from matplotlib import pyplot as plt
+
 from sklearn.model_selection import train_test_split
 
 from tensorflow.keras.preprocessing import image    
@@ -39,70 +42,86 @@ def map_to_buckets(y):
     return list(map(to_bucket, y))
 
 
-def load_image(x, batch_folder):
-    path = '../data/' + batch_folder + '/StreetViewImages/' + x + '.jpg'
+def load_image(x, img_size, batch_path):
+    path = batch_path + '/StreetViewImages/' + x + '.jpg'
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.cast(image, tf.float32)
     image = (image/127.5) - 1 # convert to shape for VGG
-    image = tf.image.resize(image, (IMG_SIZE, IMG_SIZE))
+    image = tf.image.resize(image, (img_size, img_size))
  
     return image
 
-def get_train_val_test(batch_folder, split=(70, 20, 10)):
+def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     data_path = '../data/'
-    batch_path = data_path + batch_folder + '/'2
-    with open(data_path + 'labels.csv', 'r') as f:
+    batch_path = data_path + batch_folder + '/'
+    with open(batch_path + 'labels.csv', 'r') as f:
         labels = list(csv.reader(f))
     X = []
     y = []
     for row in labels:
         X.append(row[0])
-        y.append(int(row[1]))
+        y.append(float(row[1]))
     y = map_to_buckets(y)
     X = np.array(X)
     y = np.array(y)
-    X_train, y_train, X_test_val, y_test_val = train_test_split(X, y, test_size=0.3)
-    X_val, y_val, X_test, y_test = train_test_split(X_test_val, y_test_val, test_size=0.67) # 0.67 * 0.3 = 0.2
+    X_train, X_test_val, y_train,  y_test_val = train_test_split(X, y, test_size=0.4)
+    X_val, X_test, y_val, y_test = train_test_split(X_test_val, y_test_val, test_size=0.67) # 0.67 * 0.3 = 0.2
 
     def generator(X_, y_, batch_size=100):
-        N = len(y_)
-        i = 0
-        ind = range(N) #indices
-        while True:
-            batch_X = []
-            batch_y = []
-            for b in range(batch_size):
-                if i == N:
-                    np.random.shuffle(ind)
-                    i = 0
-                i += 1
-                curr_index = ind[i]
-                x = X_[curr_index]
-                x_image = load_image(x, batch_folder)
-                batch_X.append(x_image)
-                batch_y.append(y_[curr_index])
-            
-            batch_X = np.array(batch_X)
-            batch_y = np.array(batch_y)
-            yield (batch_X, batch_y)
+        def gen():
+            N = len(y_)
+            i = 0
+            ind = np.arange(N) #indices
+            while True:
+                batch_X = []
+                batch_y = []
+                for b in range(batch_size):
+                    if i == N:
+                        np.random.shuffle(ind)
+                        i = 0
+                    curr_index = ind[i]
+                    x = X_[curr_index]
+                    x_image = load_image(x, img_size, batch_path)
+                    batch_X.append(x_image)
+                    batch_y.append(y_[curr_index])
+                    i += 1
+                batch_X = np.stack(batch_X)
+                batch_y = np.array(batch_y)
+                yield (batch_X, batch_y)
+        return gen
 
     train_gen = generator(X_train, y_train)
     val_gen = generator(X_val, y_val)
     test_gen = generator(X_test, y_test)
+    # X_train_ = []
+    # for x in X_train:
+    #     img = load_image(x, img_size, batch_path)
+    #     X_train_.append(np.expand_dims(image, axis=0))
+    #     if 
+    # train = tf.data.Dataset.from_tensor_slices((X_train_, y_train))
+    # train.batch(100)
+    # train = tf.data.Dataset.from_generator(train_gen, output_types=(tf.float32, tf.int16), output_shapes=(tf.TensorShape((100, 224, 224, 3)), (100,)))
+    # val = tf.data.Dataset.from_generator(val_gen, output_types=(tf.float32, tf.int16), output_shapes=(tf.TensorShape((100, 224, 224, 3)), (100,)))
+    # test = tf.data.Dataset.from_generator(test_gen, output_types=(tf.float32, tf.int16))
     return train_gen, val_gen, test_gen
 
-def train_and_eval(model, batch_folder, epochs, steps_per_epoch, validation_steps):
-    history = model.fit(train_ds,  
+
+def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, validation_steps):
+    train_gen, val_gen, test = get_train_val_test(batch_folder, img_size)
+    history = model.fit(train_gen(),  
                     epochs=epochs,
                     steps_per_epoch=steps_per_epoch,
                     validation_steps=5,
-                    validation_data=validation_ds)
+                    validation_data=val_gen())  
  
-    loss0,accuracy0 = model.evaluate(validation_ds, steps = validation_steps)
+    loss0,accuracy0 = model.evaluate(val_gen(), steps = validation_steps)
+
+    name = batch_folder + '_' + str(epochs) + '_epochs'
     
-    print("loss: {:.2f}".format(loss0))
-    print("accuracy: {:.2f}".format(accuracy0))
+    print(name + "loss: {:.2f}".format(loss0))
+    print(name + "accuracy: {:.2f}".format(accuracy0))
+    
 
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
@@ -110,7 +129,7 @@ def train_and_eval(model, batch_folder, epochs, steps_per_epoch, validation_step
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plt.show()
+    plt.savefig(name + '_acc.png')
 
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -118,13 +137,18 @@ def train_and_eval(model, batch_folder, epochs, steps_per_epoch, validation_step
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plt.show()
+    plt.savefig(name + '_loss.png')
 
 def main():
-    IMG_SIZE = (224, 224, 3)
+    img_size = 224
+    batch_folder = 'AZ_0.01stride'
+    print('starting')
+    train, val, test = get_train_val_test(batch_folder, img_size)
     labels = ['low income', 'medium income', 'high income']
-    model = get_vgg_transfer_model(IMG_SIZE, len(labels))
-    train_and_eval(model=model, batch_folder='AZ_0.01stride', epochs=5, steps_per_epoch=2, validation_steps=2)
+    print('creating model')
+    model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    print('train and eval')
+    train_and_eval(model=model, img_size=img_size, batch_folder=batch_folder, epochs=50, steps_per_epoch=2, validation_steps=2)
 
 if __name__ == '__main__':
     main()
