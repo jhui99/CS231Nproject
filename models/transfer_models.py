@@ -18,11 +18,13 @@ def get_vgg_transfer_model(img_shape, num_labels):
                                                 weights='imagenet')
     VGG16_MODEL.trainable=False
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+    dense = tf.keras.layers.Dense(150, activation='relu')
     prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
 
     model = tf.keras.Sequential([
         VGG16_MODEL,
         global_average_layer,
+        dense,
         prediction_layer
     ])
 
@@ -107,7 +109,7 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     return train_gen, val_gen, test_gen
 
 
-def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, validation_steps):
+def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, validation_steps, base_name=''):
     train_gen, val_gen, test = get_train_val_test(batch_folder, img_size)
     history = model.fit(train_gen(),  
                     epochs=epochs,
@@ -117,7 +119,7 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
  
     loss0,accuracy0 = model.evaluate(val_gen(), steps = validation_steps)
 
-    name = batch_folder + '_' + str(epochs) + '_epochs'
+    name = base_name + batch_folder + '_' + str(epochs) + '_epochs'
     
     print(name + "loss: {:.2f}".format(loss0))
     print(name + "accuracy: {:.2f}".format(accuracy0))
