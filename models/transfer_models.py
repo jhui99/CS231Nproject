@@ -157,11 +157,15 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
 
 def main():
     img_size = 224
-    batch_folder = 'GA_1'
+    batch_folders = ['GA_1', 'GA_2', 'AZ_0.01stride', 'AZ2_00.005stride']
     train, val, test = get_train_val_test(batch_folder, img_size)
     labels = ['low income', 'medium income', 'high income']
-    model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    train_and_eval(model=model, img_size=img_size, batch_folder=batch_folder, epochs=50, steps_per_epoch=2, validation_steps=2)
+    for bf in batch_folders:
+        model = get_vgg_transfer_model((224, 224, 3), len(labels))
+        train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=5, steps_per_epoch=2, validation_steps=2)
+    for bf in batch_folders:
+        model = get_vgg_transfer_model((224, 224, 3), len(labels))
+        train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2, name='run_2_')
 
 if __name__ == '__main__':
     main()
