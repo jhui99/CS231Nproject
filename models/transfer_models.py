@@ -54,6 +54,17 @@ def load_image(x, img_size, batch_path):
  
     return image
 
+def duplicate_angles(X, y):
+    y = y.repeat(6)
+    X = X.repeat(6)
+    new_X = []
+    for i in range(len(X)):
+        new_str = str(X[i]) + '-' + str(60 * (i % 6))
+        new_X.append(new_str)
+    new_X = np.array(new_X)
+    return new_X, y
+
+
 def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     data_path = '../data/'
     batch_path = data_path + batch_folder + '/'
@@ -69,6 +80,9 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     y = np.array(y)
     X_train, X_test_val, y_train,  y_test_val = train_test_split(X, y, test_size=0.4)
     X_val, X_test, y_val, y_test = train_test_split(X_test_val, y_test_val, test_size=0.67) # 0.67 * 0.3 = 0.2
+    X_train, y_train = duplicate_angles(X_train, y_train)
+    X_val, y_val = duplicate_angles(X_val, y_val)
+    X_test, y_test = duplicate_angles(X_test, y_test)
 
     def generator(X_, y_, batch_size=100):
         def gen():
@@ -143,13 +157,10 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
 
 def main():
     img_size = 224
-    batch_folder = 'AZ_0.01stride'
-    print('starting')
+    batch_folder = 'GA_1'
     train, val, test = get_train_val_test(batch_folder, img_size)
     labels = ['low income', 'medium income', 'high income']
-    print('creating model')
     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    print('train and eval')
     train_and_eval(model=model, img_size=img_size, batch_folder=batch_folder, epochs=50, steps_per_epoch=2, validation_steps=2)
 
 if __name__ == '__main__':
