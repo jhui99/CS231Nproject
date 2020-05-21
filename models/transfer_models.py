@@ -80,9 +80,10 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     y = np.array(y)
     X_train, X_test_val, y_train,  y_test_val = train_test_split(X, y, test_size=0.4)
     X_val, X_test, y_val, y_test = train_test_split(X_test_val, y_test_val, test_size=0.67) # 0.67 * 0.3 = 0.2
-    X_train, y_train = duplicate_angles(X_train, y_train)
-    X_val, y_val = duplicate_angles(X_val, y_val)
-    X_test, y_test = duplicate_angles(X_test, y_test)
+    if batch_folder[-3:] != 'sat':
+        X_train, y_train = duplicate_angles(X_train, y_train)
+        X_val, y_val = duplicate_angles(X_val, y_val)
+        X_test, y_test = duplicate_angles(X_test, y_test)
 
     def generator(X_, y_, batch_size=100):
         def gen():
@@ -138,34 +139,37 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
     print(name + "loss: {:.2f}".format(loss0))
     print(name + "accuracy: {:.2f}".format(accuracy0))
     
-
+    plt.figure()
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plt.savefig(name + '_acc.png')
+    plt.savefig('accs/' + name + '_acc.png')
 
+    plt.clf()
+    plt.figure()
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plt.savefig(name + '_loss.png')
+    plt.savefig('losses/' + name + '_loss.png')
 
 def main():
     img_size = 224
-    batch_folders = ['GA_1', 'GA_2', 'AZ_0.01stride', 'AZ2_00.005stride']
-    train, val, test = get_train_val_test(batch_folder, img_size)
+    batch_folders = ['GA_1', 'GA_2', 'AZ2_0.005stride']
     labels = ['low income', 'medium income', 'high income']
-    for bf in batch_folders:
-        model = get_vgg_transfer_model((224, 224, 3), len(labels))
-        train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=5, steps_per_epoch=2, validation_steps=2)
-    for bf in batch_folders:
-        model = get_vgg_transfer_model((224, 224, 3), len(labels))
-        train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2, name='run_2_')
+    # for bf in batch_folders:
+    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=5, steps_per_epoch=2, validation_steps=2)
+    # for bf in batch_folders:
+    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2, base_name='run_2_')
+    model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    train_and_eval(model=model, img_size=img_size, batch_folder='GA_1', epochs=3, steps_per_epoch=2, validation_steps=2, base_name='')
 
 if __name__ == '__main__':
     main()
