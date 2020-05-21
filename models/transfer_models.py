@@ -146,7 +146,7 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plt.savefig(name + '_acc.png')
+    plt.savefig('accs/' + name + '_acc.png')
 
     plt.clf()
     plt.figure()
@@ -156,7 +156,7 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plt.savefig(name + '_loss.png')
+    plt.savefig('losses/' + name + '_loss.png')
 
 def main():
     img_size = 224
