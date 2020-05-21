@@ -6,7 +6,8 @@ import numpy as np
 
 myloc = r"./StreetView Images" #Replace with correct location
 mysatloc = r"./Location Satellite Images"
-key = "&key=" + "AIzaSyA8RcVdojD1-GWoNTOPSES8KPGC1swbp2w" #got banned after ~100 requests with no key or after 25,000 requests without signature
+# key = "&key=" + "AIzaSyA8RcVdojD1-GWoNTOPSES8KPGC1swbp2w" #got banned after ~100 requests with no key or after 25,000 requests without signature
+key = "&key=" + "AIzaSyCteUMXae6kh3CJkj--NRdGhhX5bzm_FDs" #New key from huijohannes@gmail.com
 
 #Gets streetview image given "Loc" (lat/long), saves at filepath "SaveLoc" as "index".jpg
 def getStreetViewImage(Loc, SaveLoc, index):
@@ -33,9 +34,9 @@ def checkLatLongImage(Loc):
     return response_data["status"]
 
 def getSatelliteImage(Loc, SaveLoc, index):
-    base = "https://maps.googleapis.com/maps/api/staticmap?size=640x640&maptype=satellite&zoom=17&center="
+    base = "https://maps.googleapis.com/maps/api/staticmap?size=224x224&maptype=satellite&zoom=17&center="
     MyUrl = base + urllib.parse.quote_plus(Loc) + key #added url encoding
-    fi = str(index) + "_sat.jpg"
+    fi = str(index) + ".jpg"
     urllib.request.urlretrieve(MyUrl, os.path.join(SaveLoc, fi))
 
 def isSameImage(image1, image2):

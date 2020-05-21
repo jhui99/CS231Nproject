@@ -3,7 +3,7 @@ import censusgeocode as cg
 import img_dl
 import geoid_income_utils
 
-SaveLoc = r"./Batch 2/StreetView Images"
+SaveLoc = r"../data/GA_3/StreetView Images"
 
 GEO_ID_income_dict = geoid_income_utils.readFromFile()
 index = 2000000
