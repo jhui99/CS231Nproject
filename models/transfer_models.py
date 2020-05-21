@@ -80,9 +80,10 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     y = np.array(y)
     X_train, X_test_val, y_train,  y_test_val = train_test_split(X, y, test_size=0.4)
     X_val, X_test, y_val, y_test = train_test_split(X_test_val, y_test_val, test_size=0.67) # 0.67 * 0.3 = 0.2
-    X_train, y_train = duplicate_angles(X_train, y_train)
-    X_val, y_val = duplicate_angles(X_val, y_val)
-    X_test, y_test = duplicate_angles(X_test, y_test)
+    if batch_folder[-3:] != 'sat':
+        X_train, y_train = duplicate_angles(X_train, y_train)
+        X_val, y_val = duplicate_angles(X_val, y_val)
+        X_test, y_test = duplicate_angles(X_test, y_test)
 
     def generator(X_, y_, batch_size=100):
         def gen():
