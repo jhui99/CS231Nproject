@@ -1,4 +1,4 @@
- import tensorflow as tf
+import tensorflow as tf
 import os
 import csv
 import numpy as np
@@ -20,9 +20,17 @@ def get_vgg_transfer_model(img_shape, num_labels):
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
     dense = tf.keras.layers.Dense(150, activation='relu')
     prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
+    conv1 = tf.keras.layers.Conv2D(20, (7,7), strides=(1, 1), input_shape=(224, 224, 3))
+    conv2 = tf.keras.layers.Conv2D(20, (3,3), strides=(2, 2))
+    maxpool = tf.keras.layers.MaxPool2D(pool_size=(2, 2))
 
     model = tf.keras.Sequential([
-        VGG16_MODEL,
+        # VGG16_MODEL,
+        conv1,
+        maxpool,
+        conv2,
+        maxpool,
+        conv2,
         global_average_layer,
         dense,
         prediction_layer
@@ -45,7 +53,7 @@ def map_to_buckets(y):
 
 
 def load_image(x, img_size, batch_path):
-    path = batch_path + '/StreetViewImages/' + x + '.jpg'
+    path = batch_path + 'Images/' + x + '.jpg'
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.cast(image, tf.float32)
@@ -160,16 +168,11 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
 
 def main():
     img_size = 224
-    batch_folders = ['GA_1', 'GA_2', 'AZ2_0.005stride']
+    batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
     labels = ['low income', 'medium income', 'high income']
-    # for bf in batch_folders:
-    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=5, steps_per_epoch=2, validation_steps=2)
-    # for bf in batch_folders:
-    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2, base_name='run_2_')
-    model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    train_and_eval(model=model, img_size=img_size, batch_folder='GA_1', epochs=3, steps_per_epoch=2, validation_steps=2, base_name='')
+    for bf in batch_folders:
+        model = get_vgg_transfer_model((224, 224, 3), len(labels))
+        train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2)
 
 if __name__ == '__main__':
     main()
