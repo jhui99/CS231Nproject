@@ -3,10 +3,10 @@ import censusgeocode as cg
 import img_dl
 import geoid_income_utils
 
-SaveLoc = r"../data/GA_3/StreetView Images"
+SaveLoc = r"../data/AZ_3_sat/Images"
 
 GEO_ID_income_dict = geoid_income_utils.readFromFile()
-index = 2000000
+index = 3000000
 iterations = 0
 labels = {}
 locations = {}
@@ -52,7 +52,7 @@ for lat in np.arange(33.207042, 33.703049, 0.005):
             locations[index] = loc
 
             if index % 100 == 0:
-                print("Downloaded " + str(index - 2000000 + 1) + " images")
+                print("Downloaded " + str(index - 000000 + 1) + " images")
             index += 1
 
         if iterations % 100 == 0:

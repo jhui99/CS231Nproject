@@ -1,4 +1,4 @@
-import tensorflow as tf
+ import tensorflow as tf
 import os
 import csv
 import numpy as np
@@ -169,7 +169,7 @@ def main():
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2, base_name='run_2_')
     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=3, steps_per_epoch=2, validation_steps=2, base_name='')
+    train_and_eval(model=model, img_size=img_size, batch_folder='GA_1', epochs=3, steps_per_epoch=2, validation_steps=2, base_name='')
 
 if __name__ == '__main__':
     main()
