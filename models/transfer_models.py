@@ -1,4 +1,4 @@
- import tensorflow as tf
+import tensorflow as tf
 import os
 import csv
 import numpy as np
@@ -68,6 +68,10 @@ def map_to_buckets(y, loc):
         b1, b2 = 60000, 100000
     elif loc == 'GA':
         b1, b2 = 26604, 75375
+    elif loc == 'RI':
+        b1, b2 = 50117, 65129
+    elif loc == 'DC':
+        b1, b2 = 38861, 93523
     def to_bucket(income):
         if income < b1:
             return 0
@@ -101,8 +105,12 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     data_path = '../data/'
     if 'AZ' in batch_folder:
         loc = 'AZ'
-    else:
+    elif 'GA' in batch_folder:
         loc = 'GA'
+    elif 'RI' in batch_folder:
+        loc = 'RI'
+    elif 'DC' in batch_folder:
+        loc = 'DC'
     batch_path = data_path + batch_folder + '/'
     with open(batch_path + 'labels.csv', 'r') as f:
         labels = list(csv.reader(f))
@@ -196,23 +204,22 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
 
 def main():
     img_size = 224
-    batch_folders = ['GA_1', 'GA_2', 'AZ2_0.005stride']
+    batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
     labels = ['low income', 'medium income', 'high income']
-    # for bf in batch_folders:
-    #     print('starting')
-    #     model = get_resnet_model((224, 224, 3), len(labels))
-    #     print('post init model')
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=5, steps_per_epoch=2, validation_steps=2)
-    #     print('post train')
+    for bf in batch_folders:
+        frozen_model = get_vgg_transfer_model((224, 224, 3), len(labels))
+        train_and_eval(model=frozen_model, img_size=img_size, batch_folder=bf, epochs=3, steps_per_epoch=2, validation_steps=2, base_name='frozen')
+        unfrozen_model = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), unfreeze_layer=100)
+        train_and_eval(model=unfrozen_model, img_size=img_size, batch_folder=bf, epochs=3, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
     # for bf in batch_folders:
     #     model = get_resnet_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2, base_name='run_2_')
     # model = get_vgg_transfer_model((224, 224, 3), len(labels))
     # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=5, steps_per_epoch=2, validation_steps=2, base_name='')
-    model1 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
-    train_and_eval(model=model1, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
-    model2 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
-    train_and_eval(model=model2, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='frozen')
+    # model1 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
+    # train_and_eval(model=model1, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
+    # model2 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
+    # train_and_eval(model=model2, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='frozen')
 
 if __name__ == '__main__':
     main()
