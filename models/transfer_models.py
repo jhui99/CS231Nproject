@@ -24,17 +24,9 @@ def get_vgg_transfer_model(img_shape, num_labels):
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
     dense = tf.keras.layers.Dense(150, activation='relu')
     prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
-    conv1 = tf.keras.layers.Conv2D(20, (7,7), strides=(1, 1), input_shape=(224, 224, 3))
-    conv2 = tf.keras.layers.Conv2D(20, (3,3), strides=(2, 2))
-    maxpool = tf.keras.layers.MaxPool2D(pool_size=(2, 2))
 
     model = tf.keras.Sequential([
-        # VGG16_MODEL,
-        conv1,
-        maxpool,
-        conv2,
-        maxpool,
-        conv2,
+        VGG16_MODEL,
         global_average_layer,
         dense,
         prediction_layer
@@ -80,6 +72,8 @@ def map_to_buckets(y, loc):
         b1, b2 = 50117, 65129
     elif loc == 'DC':
         b1, b2 = 38861, 93523
+    elif loc == 'AA':
+        b1, b2 = 63983, 79446
     def to_bucket(income):
         if income < b1:
             return 0
@@ -120,6 +114,8 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
         loc = 'RI'
     elif 'DC' in batch_folder:
         loc = 'DC'
+    elif 'AA' in batch_folder:
+        loc = 'AA'
     batch_path = data_path + batch_folder + '/'
     with open(batch_path + 'labels.csv', 'r') as f:
         labels = list(csv.reader(f))
@@ -164,16 +160,6 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     train_gen = generator(X_train, y_train)
     val_gen = generator(X_val, y_val)
     test_gen = generator(X_test, y_test)
-    # X_train_ = []
-    # for x in X_train:
-    #     img = load_image(x, img_size, batch_path)
-    #     X_train_.append(np.expand_dims(image, axis=0))
-    #     if 
-    # train = tf.data.Dataset.from_tensor_slices((X_train_, y_train))
-    # train.batch(100)
-    # train = tf.data.Dataset.from_generator(train_gen, output_types=(tf.float32, tf.int16), output_shapes=(tf.TensorShape((100, 224, 224, 3)), (100,)))
-    # val = tf.data.Dataset.from_generator(val_gen, output_types=(tf.float32, tf.int16), output_shapes=(tf.TensorShape((100, 224, 224, 3)), (100,)))
-    # test = tf.data.Dataset.from_generator(test_gen, output_types=(tf.float32, tf.int16))
     return train_gen, val_gen, test_gen
 
 
@@ -217,9 +203,9 @@ def main():
     labels = ['low income', 'medium income', 'high income']
     for bf in batch_folders:
         frozen_model = get_vgg_transfer_model((224, 224, 3), len(labels))
-        train_and_eval(model=frozen_model, img_size=img_size, batch_folder=bf, epochs=3, steps_per_epoch=2, validation_steps=2, base_name='frozen')
+        train_and_eval(model=frozen_model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=2, validation_steps=2, base_name='frozen')
         unfrozen_model = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), unfreeze_layer=100)
-        train_and_eval(model=unfrozen_model, img_size=img_size, batch_folder=bf, epochs=3, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
+        train_and_eval(model=unfrozen_model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
 
 
 if __name__ == '__main__':
