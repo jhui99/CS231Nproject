@@ -6,7 +6,7 @@ import csv
 
 
 def readFromFile():
-	with open('../GA_GEO_ID_Income_Map.csv') as csv_file:
+	with open('../AZ_GEO_ID_Income_Map.csv') as csv_file:
 		GEO_ID_income_dict = {}
 		csv_reader = csv.reader(csv_file, delimiter = ',')
 		line_count = 0
@@ -33,7 +33,7 @@ def writeLabelsToFile(filename, index_label_dict): #not implemented
 		# 	output_writer.writerow(elem)
 
 def getIncomes():
-	with open('../GEO_ID_Income_Map.csv') as csv_file:
+	with open('../RI_GEO_ID_Income_Map.csv') as csv_file:
 		incomes = []
 		csv_reader = csv.reader(csv_file, delimiter = ',')
 		line_count = 0

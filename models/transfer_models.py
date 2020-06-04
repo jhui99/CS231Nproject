@@ -1,4 +1,4 @@
-import tensorflow as tf
+ import tensorflow as tf
 import os
 import csv
 import numpy as np
@@ -226,12 +226,17 @@ def main():
     # for bf in batch_folders:
     #     model = get_resnet_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2, base_name='run_2_')
+<<<<<<< HEAD
     # model = get_vgg_transfer_model((224, 224, 3), len(labels))
     # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=5, steps_per_epoch=2, validation_steps=2, base_name='')
     model1 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
     train_and_eval(model=model1, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
     model2 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
     train_and_eval(model=model2, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='frozen')
+=======
+    model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    train_and_eval(model=model, img_size=img_size, batch_folder='GA_1', epochs=3, steps_per_epoch=2, validation_steps=2, base_name='')
+>>>>>>> 9992f64d966bade1cae9b08c0eee0ee2f6235635
 
 if __name__ == '__main__':
     main()
