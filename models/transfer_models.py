@@ -24,9 +24,17 @@ def get_vgg_transfer_model(img_shape, num_labels):
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
     dense = tf.keras.layers.Dense(150, activation='relu')
     prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
+    conv1 = tf.keras.layers.Conv2D(20, (7,7), strides=(1, 1), input_shape=(224, 224, 3))
+    conv2 = tf.keras.layers.Conv2D(20, (3,3), strides=(2, 2))
+    maxpool = tf.keras.layers.MaxPool2D(pool_size=(2, 2))
 
     model = tf.keras.Sequential([
-        VGG16_MODEL,
+        # VGG16_MODEL,
+        conv1,
+        maxpool,
+        conv2,
+        maxpool,
+        conv2,
         global_average_layer,
         dense,
         prediction_layer
@@ -82,7 +90,8 @@ def map_to_buckets(y, loc):
 
 
 def load_image(x, img_size, batch_path):
-    path = batch_path + '/Images/' + x + '.jpg'
+
+    path = batch_path + 'Images/' + x + '.jpg'
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.cast(image, tf.float32)
@@ -211,15 +220,7 @@ def main():
         train_and_eval(model=frozen_model, img_size=img_size, batch_folder=bf, epochs=3, steps_per_epoch=2, validation_steps=2, base_name='frozen')
         unfrozen_model = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), unfreeze_layer=100)
         train_and_eval(model=unfrozen_model, img_size=img_size, batch_folder=bf, epochs=3, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
-    # for bf in batch_folders:
-    #     model = get_resnet_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2, base_name='run_2_')
-    # model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=5, steps_per_epoch=2, validation_steps=2, base_name='')
-    # model1 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
-    # train_and_eval(model=model1, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
-    # model2 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
-    # train_and_eval(model=model2, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='frozen')
+
 
 if __name__ == '__main__':
     main()
