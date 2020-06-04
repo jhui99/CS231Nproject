@@ -12,6 +12,29 @@ from tensorflow.keras.optimizers import (
     Adam
 )
 
+
+#  THINGS TO TRY
+# Conv-MaxPool-Dropout
+
+def get_resnet_model(img_shape, num_labels):
+    RES_NET = tf.keras.applications.ResNet50(input_shape=img_shape, include_top=False, weights='imagenet', )
+    global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+    dense = tf.keras.layers.Dense(150, activation='relu')
+    prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
+
+    model = tf.keras.Sequential([
+        RES_NET,
+        global_average_layer,
+        dense,
+        prediction_layer
+    ])
+
+    model.compile(optimizer=Adam(), 
+              loss=tf.keras.losses.sparse_categorical_crossentropy,
+              metrics=["accuracy"])
+
+    return model
+
 def get_vgg_transfer_model(img_shape, num_labels):
     VGG16_MODEL=tf.keras.applications.VGG16(input_shape=img_shape,
                                                 include_top=False,
@@ -34,24 +57,52 @@ def get_vgg_transfer_model(img_shape, num_labels):
 
     return model
 
-def map_to_buckets(y):
+def get_vgg_transfer_model_unfrozen(img_shape, num_labels, unfreeze_layer):
+    VGG16_MODEL=tf.keras.applications.VGG16(input_shape=img_shape,
+                                                include_top=False,
+                                                weights='imagenet')
+    VGG16_MODEL.trainable=True
+    for layer in VGG16_MODEL.layers[:unfreeze_layer]:
+        layer.trainable = False
+
+    global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+    dense = tf.keras.layers.Dense(150, activation='relu')
+    prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
+
+    model = tf.keras.Sequential([
+        VGG16_MODEL,
+        global_average_layer,
+        dense,
+        prediction_layer
+    ])
+
+    model.compile(optimizer=Adam(), 
+              loss=tf.keras.losses.sparse_categorical_crossentropy,
+              metrics=["accuracy"])
+
+    return model
+
+def map_to_buckets(y, loc):
+    if loc =='AZ':
+        b1, b2 = 60000, 100000
+    elif loc == 'GA':
+        b1, b2 = 26604, 75375
     def to_bucket(income):
-        if income < 60000:
+        if income < b1:
             return 0
-        elif income < 100000:
+        elif income < b2:
             return 1
         return 2
     return list(map(to_bucket, y))
 
 
 def load_image(x, img_size, batch_path):
-    path = batch_path + '/StreetViewImages/' + x + '.jpg'
+    path = batch_path + '/Images/' + x + '.jpg'
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.cast(image, tf.float32)
     image = (image/127.5) - 1 # convert to shape for VGG
     image = tf.image.resize(image, (img_size, img_size))
- 
     return image
 
 def duplicate_angles(X, y):
@@ -67,6 +118,10 @@ def duplicate_angles(X, y):
 
 def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     data_path = '../data/'
+    if 'AZ' in batch_folder:
+        loc = 'AZ'
+    else:
+        loc = 'GA'
     batch_path = data_path + batch_folder + '/'
     with open(batch_path + 'labels.csv', 'r') as f:
         labels = list(csv.reader(f))
@@ -75,7 +130,7 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     for row in labels:
         X.append(row[0])
         y.append(float(row[1]))
-    y = map_to_buckets(y)
+    y = map_to_buckets(y, loc)
     X = np.array(X)
     y = np.array(y)
     X_train, X_test_val, y_train,  y_test_val = train_test_split(X, y, test_size=0.4)
@@ -125,7 +180,7 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
 
 
 def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, validation_steps, base_name=''):
-    train_gen, val_gen, test = get_train_val_test(batch_folder, img_size)
+    train_gen, val_gen, test_gen = get_train_val_test(batch_folder, img_size)
     history = model.fit(train_gen(),  
                     epochs=epochs,
                     steps_per_epoch=steps_per_epoch,
@@ -163,13 +218,20 @@ def main():
     batch_folders = ['GA_1', 'GA_2', 'AZ2_0.005stride']
     labels = ['low income', 'medium income', 'high income']
     # for bf in batch_folders:
-    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    #     print('starting')
+    #     model = get_resnet_model((224, 224, 3), len(labels))
+    #     print('post init model')
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=5, steps_per_epoch=2, validation_steps=2)
+    #     print('post train')
     # for bf in batch_folders:
-    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    #     model = get_resnet_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=2, validation_steps=2, base_name='run_2_')
-    model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=3, steps_per_epoch=2, validation_steps=2, base_name='')
+    # model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=5, steps_per_epoch=2, validation_steps=2, base_name='')
+    model1 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
+    train_and_eval(model=model1, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
+    model2 = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), 100)
+    train_and_eval(model=model2, img_size=img_size, batch_folder='GA_3_sat', epochs=100, steps_per_epoch=2, validation_steps=2, base_name='frozen')
 
 if __name__ == '__main__':
     main()
