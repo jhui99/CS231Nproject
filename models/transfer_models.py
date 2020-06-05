@@ -74,6 +74,8 @@ def map_to_buckets(y, loc):
         b1, b2 = 38861, 93523
     elif loc == 'AA':
         b1, b2 = 63983, 79446
+    elif loc == 'ZZ':
+        b1, b2 = 75000, 100000
     def to_bucket(income):
         if income < b1:
             return 0
@@ -104,8 +106,10 @@ def duplicate_angles(X, y):
     return new_X, y
 
 
-def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
+def get_train_val_test(batch_folder, forced_loc, img_size, split=(70, 20, 10)):
     data_path = '../data/'
+    if forced_loc != None:
+        loc = forced_loc
     if 'AZ' in batch_folder:
         loc = 'AZ'
     elif 'GA' in batch_folder:
@@ -163,8 +167,8 @@ def get_train_val_test(batch_folder, img_size, split=(70, 20, 10)):
     return train_gen, val_gen, test_gen
 
 
-def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, validation_steps, base_name=''):
-    train_gen, val_gen, test_gen = get_train_val_test(batch_folder, img_size)
+def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, validation_steps, forced_loc=None, base_name=''):
+    train_gen, val_gen, test_gen = get_train_val_test(batch_folder, forced_loc=forced_loc, img_size=img_size)
     history = model.fit(train_gen(),  
                     epochs=epochs,
                     steps_per_epoch=steps_per_epoch,
@@ -203,9 +207,9 @@ def main():
     labels = ['low income', 'medium income', 'high income']
     for bf in batch_folders:
         frozen_model = get_vgg_transfer_model((224, 224, 3), len(labels))
-        train_and_eval(model=frozen_model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=2, validation_steps=2, base_name='frozen')
-        unfrozen_model = get_vgg_transfer_model_unfrozen((224, 224, 3), len(labels), unfreeze_layer=100)
-        train_and_eval(model=unfrozen_model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=2, validation_steps=2, base_name='unfrozen')
+        train_and_eval(model=frozen_model, img_size=img_size, batch_folder=bf, epochs=300, steps_per_epoch=2, validation_steps=2, base_name='frozen')
+        model2 = get_vgg_transfer_model((224, 224, 3), len(labels))
+        train_and_eval(model=model2, img_size=img_size, batch_folder=bf, epochs=300, steps_per_epoch=2, validation_steps=2, forced_loc='ZZ', base_name='frozen75k')
 
 
 if __name__ == '__main__':
