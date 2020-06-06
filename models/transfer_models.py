@@ -75,7 +75,7 @@ def map_to_buckets(y, loc):
     elif loc == 'AA':
         b1, b2 = 63983, 79446
     elif loc == 'ZZ':
-        b1, b2 = 75000, 100000
+        b1, b2 = 60000, 100000
     def to_bucket(income):
         if income < b1:
             return 0
@@ -206,10 +206,10 @@ def main():
     batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
     labels = ['low income', 'medium income', 'high income']
     for bf in batch_folders:
-        frozen_model = get_vgg_transfer_model((224, 224, 3), len(labels))
-        train_and_eval(model=frozen_model, img_size=img_size, batch_folder=bf, epochs=300, steps_per_epoch=2, validation_steps=2, base_name='frozen')
+        # frozen_model = get_vgg_transfer_model((224, 224, 3), len(labels))
+        # train_and_eval(model=frozen_model, img_size=img_size, batch_folder=bf, epochs=300, steps_per_epoch=2, validation_steps=2, base_name='frozen')
         model2 = get_vgg_transfer_model((224, 224, 3), len(labels))
-        train_and_eval(model=model2, img_size=img_size, batch_folder=bf, epochs=300, steps_per_epoch=2, validation_steps=2, forced_loc='ZZ', base_name='frozen75k')
+        train_and_eval(model=model2, img_size=img_size, batch_folder=bf, epochs=300, steps_per_epoch=2, validation_steps=2, forced_loc='ZZ', base_name='frozen60k')
 
 
 if __name__ == '__main__':
