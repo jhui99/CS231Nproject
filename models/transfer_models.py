@@ -7,15 +7,15 @@ from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 
+import seaborn as sn
+import pandas as pd
+import matplotlib.pyplot as plt
+
 from tensorflow.keras.preprocessing import image    
 
 from tensorflow.keras.optimizers import (
     Adam
 )
-
-
-#  THINGS TO TRY
-# Conv-MaxPool-Dropout
 
 def get_vgg_transfer_model(img_shape, num_labels):
     VGG16_MODEL=tf.keras.applications.VGG16(input_shape=img_shape,
@@ -209,18 +209,6 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
     plt.savefig('losses/' + name + '_loss.png')
 
 
-    # val_y = next(val_gen())
-    # print(val_y)
-    # y_pred = model.predict(val_y, steps=validation_steps)
-    # y_pred = np.argmax(y_pred, axis=1)
-    # print('pred shape', y_pred.shape)
-    # print('Confusion Matrix')
-    # print(confusion_matrix(val_gen().classes, y_pred))
-    # print('Classification Report')
-    # target_names = ['Low Income', 'Medium Income', 'High Income']
-    # print(classification_report(val_gen().classes, y_pred, target_names=target_names))
-
-
 def conf(model, x, y):
     pred = model.predict(x)
     pred = np.argmax(pred, axis=1)
@@ -244,33 +232,28 @@ def confusion_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name
     for i in range(num_batches):
         x, y = next(val_gen())
         conf_mat += conf(model, x, y)
-    print(conf_mat)
 
-    # val_y = next(val_gen())
-    # print(val_y)
-    # y_pred = model.predict(val_y, steps=validation_steps)
-    # y_pred = np.argmax(y_pred, axis=1)
-    # print('pred shape', y_pred.shape)
-    # print('Confusion Matrix')
-    # print(confusion_matrix(val_gen().classes, y_pred))
-    # print('Classification Report')
-    # target_names = ['Low Income', 'Medium Income', 'High Income']
-    # print(classification_report(val_gen().classes, y_pred, target_names=target_names))
+    plt.figure()
+    ind = ['Low Income', 'Medium Income', 'High Income']
+    pd_conf = pd.DataFrame(conf_mat, index = ind, columns=ind).astype('int32')
+    sn.heatmap(pd_conf, annot=True)
+    plt.show()
+    print(conf_mat)
 
 
 def main():
     img_size = 224
-    # batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
-    labels = ['low income', 'medium income', 'high income']
-    # for bf in batch_folders[1:]:
-    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=8, validation_steps=2, forced_loc='AZ', base_name='2d_60k')
+    batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
+    labels = ['low', 'medium', 'high']
     # for bf in batch_folders:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=8, validation_steps=2, forced_loc='ZZ', base_name='2d_75k')
+    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=8, validation_steps=2, base_name='2d')
+    # for bf in batch_folders[2:]:
+    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=8, validation_steps=2, forced_loc='ZZ', base_name='2d_75k')
     # model = get_vgg_transfer_model((224, 224, 3), len(labels))
     # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=50, steps_per_epoch=8, validation_steps=2, base_name='')
-    confusion_test(img_size, 'GA_3_sat')
+    confusion_test(img_size, 'GA_3_sat', epochs=100, base_name='2d')
 
 
 if __name__ == '__main__':
