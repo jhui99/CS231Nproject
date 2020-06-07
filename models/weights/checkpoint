@@ -1,0 +1,2 @@
+model_checkpoint_path: "GA_3_sat_50_epochs_weights"
+all_model_checkpoint_paths: "GA_3_sat_50_epochs_weights"
