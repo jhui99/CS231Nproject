@@ -259,10 +259,15 @@ def confusion(img_size, batch_folder, epochs=100, forced_loc=None, base_name='')
     ind = ['Low', 'Medium', 'High']
     # remove diagonals since they are the # of correct assignments
     conf_mat = tf.linalg.set_diag(conf_mat, [0, 0, 0])
+    conf_mat = tf.linalg.normalize(conf_mat, axis=1)
     pd_conf = pd.DataFrame(conf_mat, index=ind, columns=ind).astype('int32')
-    plt.figure()
-    sn.heatmap(pd_conf)
-    plt.savefig('conf_mats/' + name + '_conf')
+
+    fig, ax = sn.heatmap(pd_conf, annot=True)
+    ax.title('Confusion Matrix')
+    ax.xlabel('Predicted Labels')
+    ax.ylabel('Actual Labels')
+    plt.show()
+    # plt.savefig('conf_mats/' + name + '_conf')
 
 
 
@@ -313,11 +318,11 @@ def saliency_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name=
 def main():
     img_size = 224
     batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
-    # labels = ['low income', 'medium income', 'high income']
+    labels = ['low income', 'medium income', 'high income']
     # for bf in batch_folders:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='AZ', base_name='2d_FINAL')
-    # for bf in batch_folders[1:]:
+    # for bf in batch_folders[:1]:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='ZZ', base_name='2d_75k_FINAL')
     # model = get_vgg_transfer_model((224, 224, 3), len(labels))
