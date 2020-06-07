@@ -283,7 +283,7 @@ def saliency_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name=
     pred = model.predict(x)
     pred = np.argmax(pred, axis=1)
     # Visualize
-    for i in range(x.shape[0]):
+    for i in range(3):
         if i % 5 != 0:
             continue
         # Get input
@@ -296,16 +296,13 @@ def saliency_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name=
         # Generate visualization
         visualization = visualize_saliency(model, layer_index, filter_indices=input_class, seed_input=input_image)
 
-        arr = np.array(visualization)
-        arr *= 10
-        visualization = Image.fromarray(arr)
-
         axes[0].imshow(input_image[..., 0]) 
         axes[0].set_title('Original image')
         axes[1].imshow(visualization)
         axes[1].set_title('Saliency map')
         fig.suptitle(f'Correct class = {labels[input_class]}, Predicted = {labels[pred_class]}')
-        plt.savefig('vis/testLoadModel2/' + name + '_saliency_ ' + str(i) + '.png')
+        plt.show()
+        # plt.savefig('vis/testLoadModel2/' + name + '_saliency_ ' + str(i) + '.png')
 
 
 def main():

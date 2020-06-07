@@ -16,6 +16,10 @@ from tensorflow.keras.optimizers import (
 from vis.visualization import visualize_saliency
 from vis.utils import utils
 
+import seaborn as sn
+import pandas as pd
+
+
 from PIL import Image
 
 
@@ -46,7 +50,7 @@ def get_vgg_transfer_model(img_shape, num_labels):
 
     return model
 
-def get_vgg_transfer_model_unfrozen(img_shape, num_labels, unfreeze_layer):
+def get_vgg_transfer_model_dropout(img_shape, num_labels, unfreeze_layer):
     VGG16_MODEL=tf.keras.applications.VGG16(input_shape=img_shape,
                                                 include_top=False,
                                                 weights='imagenet')
@@ -57,12 +61,14 @@ def get_vgg_transfer_model_unfrozen(img_shape, num_labels, unfreeze_layer):
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
     dense = tf.keras.layers.Dense(150, activation='relu')
     dense2 = tf.keras.layers.Dense(150, activation='relu')
+    drop = tf.keras.layers.Dropout(0.2)
     prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
 
     model = tf.keras.Sequential([
         VGG16_MODEL,
         global_average_layer,
         dense,
+        drop,
         dense2,
         prediction_layer
     ])
@@ -233,7 +239,7 @@ def conf(model, x, y):
 
 
 
-def confusion_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name=''):
+def confusion(img_size, batch_folder, epochs=100, forced_loc=None, base_name=''):
     name = base_name + batch_folder + '_' + str(epochs) + '_epochs'
     model = get_vgg_transfer_model((224, 224, 3), 3)
     model.load_weights('weights/' + name + '_weights')
@@ -249,18 +255,15 @@ def confusion_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name
     for i in range(num_batches):
         x, y = next(val_gen())
         conf_mat += conf(model, x, y)
-    print(conf_mat)
+    
+    ind = ['Low', 'Medium', 'High']
+    # remove diagonals since they are the # of correct assignments
+    conf_mat = tf.linalg.set_diag(conf_mat, [0, 0, 0])
+    pd_conf = pd.DataFrame(conf_mat, index=ind, columns=ind).astype('int32')
+    plt.figure()
+    sn.heatmap(pd_conf)
+    plt.savefig('conf_mats/' + name + '_conf')
 
-    # val_y = next(val_gen())
-    # print(val_y)
-    # y_pred = model.predict(val_y, steps=validation_steps)
-    # y_pred = np.argmax(y_pred, axis=1)
-    # print('pred shape', y_pred.shape)
-    # print('Confusion Matrix')
-    # print(confusion_matrix(val_gen().classes, y_pred))
-    # print('Classification Report')
-    # target_names = ['Low Income', 'Medium Income', 'High Income']
-    # print(classification_report(val_gen().classes, y_pred, target_names=target_names))
 
 
 def saliency_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name=''):
@@ -307,21 +310,22 @@ def saliency_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name=
         fig.suptitle(f'Correct class = {labels[input_class]}, Predicted = {labels[pred_class]}')
         plt.savefig('vis/testLoadModel2/' + name + '_saliency_ ' + str(i) + '.png')
 
-
 def main():
     img_size = 224
-    # batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
-    labels = ['low income', 'medium income', 'high income']
-    # for bf in batch_folders[1:]:
-    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=8, validation_steps=2, forced_loc='AZ', base_name='2d_60k')
+    batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
+    # labels = ['low income', 'medium income', 'high income']
     # for bf in batch_folders:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=8, validation_steps=2, forced_loc='ZZ', base_name='2d_75k')
+    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='AZ', base_name='2d_FINAL')
+    # for bf in batch_folders[1:]:
+    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='ZZ', base_name='2d_75k_FINAL')
     # model = get_vgg_transfer_model((224, 224, 3), len(labels))
     # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=50, steps_per_epoch=8, validation_steps=2, base_name='')
-    confusion_test(img_size, 'GA_3_sat')
-    saliency_test(img_size, 'GA_3_sat')
+    # confusion_test(img_size, 'GA_3_sat')
+    # saliency_test(img_size, 'GA_3_sat')
+    confusion(img_size, 'GA_3_sat', base_name='2d_FINAL')
+
 
 
 

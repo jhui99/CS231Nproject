@@ -1,2 +1,2 @@
-model_checkpoint_path: "2d_75kGA_3_sat_100_epochs_weights"
-all_model_checkpoint_paths: "2d_75kGA_3_sat_100_epochs_weights"
+model_checkpoint_path: "2d_75k_FINALRI_1_sat_100_epochs_weights"
+all_model_checkpoint_paths: "2d_75k_FINALRI_1_sat_100_epochs_weights"
