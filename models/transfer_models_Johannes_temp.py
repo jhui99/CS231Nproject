@@ -5,13 +5,19 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix
 
 from tensorflow.keras.preprocessing import image    
 
 from tensorflow.keras.optimizers import (
     Adam
 )
+
+from vis.visualization import visualize_saliency
+from vis.utils import utils
+
+# from tensorflow.keras import backend as K
+# from tf_keras_vis.saliency import Saliency
+# from tf_keras_vis.utils import normalize
 
 
 #  THINGS TO TRY
@@ -24,16 +30,17 @@ def get_vgg_transfer_model(img_shape, num_labels):
     VGG16_MODEL.trainable=False
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
     dense = tf.keras.layers.Dense(150, activation='relu')
-    dense2 = tf.keras.layers.Dense(150, activation='relu')
-    prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
+    prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax', name='visualized_layer')
 
     model = tf.keras.Sequential([
         VGG16_MODEL,
         global_average_layer,
         dense,
-        dense2,
         prediction_layer
     ])
+
+    #For visualization
+    # model.add(tf.keras.layers.Dense(3, activation='softmax', name='visualized_layer'))
 
     model.compile(optimizer=Adam(), 
               loss=tf.keras.losses.sparse_categorical_crossentropy,
@@ -51,14 +58,12 @@ def get_vgg_transfer_model_unfrozen(img_shape, num_labels, unfreeze_layer):
 
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
     dense = tf.keras.layers.Dense(150, activation='relu')
-    dense2 = tf.keras.layers.Dense(150, activation='relu')
     prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
 
     model = tf.keras.Sequential([
         VGG16_MODEL,
         global_average_layer,
         dense,
-        dense2,
         prediction_layer
     ])
 
@@ -80,7 +85,7 @@ def map_to_buckets(y, loc):
     elif loc == 'AA':
         b1, b2 = 63983, 79446
     elif loc == 'ZZ':
-        b1, b2 = 75000, 150000
+        b1, b2 = 60000, 100000
     def to_bucket(income):
         if income < b1:
             return 0
@@ -183,8 +188,6 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
     loss0,accuracy0 = model.evaluate(val_gen(), steps = validation_steps)
 
     name = base_name + batch_folder + '_' + str(epochs) + '_epochs'
-
-    model.save_weights('weights/' + name + '_weights')
     
     print(name + "loss: {:.2f}".format(loss0))
     print(name + "accuracy: {:.2f}".format(accuracy0))
@@ -209,68 +212,15 @@ def train_and_eval(model, img_size, batch_folder, epochs, steps_per_epoch, valid
     plt.savefig('losses/' + name + '_loss.png')
 
 
-    # val_y = next(val_gen())
-    # print(val_y)
-    # y_pred = model.predict(val_y, steps=validation_steps)
-    # y_pred = np.argmax(y_pred, axis=1)
-    # print('pred shape', y_pred.shape)
-    # print('Confusion Matrix')
-    # print(confusion_matrix(val_gen().classes, y_pred))
-    # print('Classification Report')
-    # target_names = ['Low Income', 'Medium Income', 'High Income']
-    # print(classification_report(val_gen().classes, y_pred, target_names=target_names))
-
-
-def conf(model, x, y):
-    pred = model.predict(x)
-    pred = np.argmax(pred, axis=1)
-    return tf.math.confusion_matrix(y, pred)
-
-
-
-def confusion_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name=''):
-    name = base_name + batch_folder + '_' + str(epochs) + '_epochs'
-    model = get_vgg_transfer_model((224, 224, 3), 3)
-    model.load_weights('weights/' + name + '_weights')
-    train_gen, val_gen, test_gen = get_train_val_test(batch_folder, forced_loc=forced_loc, img_size=img_size)
-
-    DATA_SET_SIZES = {'GA_3_sat' : 6132, 'DC_1_sat' : 4252, 'RI_1_sat' : 3213}
-
-    sz = DATA_SET_SIZES[batch_folder]
-    num_batches = int((sz * 0.2) // 100)
-    
-    x, y = next(val_gen())
-    conf_mat = conf(model, x, y)
-    for i in range(num_batches):
-        x, y = next(val_gen())
-        conf_mat += conf(model, x, y)
-    print(conf_mat)
-
-    # val_y = next(val_gen())
-    # print(val_y)
-    # y_pred = model.predict(val_y, steps=validation_steps)
-    # y_pred = np.argmax(y_pred, axis=1)
-    # print('pred shape', y_pred.shape)
-    # print('Confusion Matrix')
-    # print(confusion_matrix(val_gen().classes, y_pred))
-    # print('Classification Report')
-    # target_names = ['Low Income', 'Medium Income', 'High Income']
-    # print(classification_report(val_gen().classes, y_pred, target_names=target_names))
-
-
 def main():
     img_size = 224
-    # batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
+    batch_folders = ['GA_3_sat']
     labels = ['low income', 'medium income', 'high income']
-    # for bf in batch_folders[1:]:
-    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=8, validation_steps=2, forced_loc='AZ', base_name='2d_60k')
-    # for bf in batch_folders:
-    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=50, steps_per_epoch=8, validation_steps=2, forced_loc='ZZ', base_name='2d_75k')
-    # model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=50, steps_per_epoch=8, validation_steps=2, base_name='')
-    confusion_test(img_size, 'GA_3_sat')
+    for bf in batch_folders:
+        # frozen_model = get_vgg_transfer_model((224, 224, 3), len(labels))
+        # train_and_eval(model=frozen_model, img_size=img_size, batch_folder=bf, epochs=300, steps_per_epoch=2, validation_steps=2, base_name='frozen')
+        model2 = get_vgg_transfer_model((224, 224, 3), len(labels))
+        train_and_eval(model=model2, img_size=img_size, batch_folder=bf, epochs=1, steps_per_epoch=1, validation_steps=1, forced_loc='ZZ', base_name='vis_test')
 
 
 if __name__ == '__main__':
