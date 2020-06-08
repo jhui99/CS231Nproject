@@ -314,10 +314,6 @@ def saliency(img_size, batch_folder, epochs=50, forced_loc=None, base_name=''):
         # Generate visualization
         visualization = visualize_saliency(model, layer_index, filter_indices=input_class, seed_input=input_image)
 
-        arr = np.array(visualization)
-        arr *= 10
-        visualization = Image.fromarray(arr)
-
         axes[0].imshow(input_image[..., 0]) 
         axes[0].set_title('Original image')
         axes[1].imshow(visualization)
@@ -338,15 +334,19 @@ def test_result(img_size, batch_folder, epochs=100, forced_loc=None, base_name='
     sz = DATA_SET_SIZES[batch_folder]
     num_batches = int((sz * 0.1) // 100)
     corrects = 0
+    data_corrects = 0
     seen = 0
     for i in range(num_batches + 1):
         x, y = next(val_gen())
         pred = model.predict(x)
         pred = np.argmax(pred, axis=1)
         corrects += np.sum(y == pred)
+        data_corrects += np.sum(y == y)
         seen += len(y)
     acc = corrects / seen
+    data_acc = data_corrects / seen
     print('test acc of {}: {}'.format(name, acc))
+    print('data acc of {}'.format(data_acc))
 
 
 def main():
@@ -368,19 +368,21 @@ def main():
         # saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
         # test_result(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
 
-    for bf in batch_folders:
-        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
-        # saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
-        test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
+    # for bf in batch_folders:
+    #     # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
+    #     saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
+        # test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
 
-    for bf in batch_folders:
-        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
-        # saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
-        test_result(img_size, bf, epochs=100, base_name='2d_FINAL')
+    # for bf in batch_folders:
+    #     # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL_dropout')
+    #     saliency(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
+        # test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
 
     
-    # for bf in batch_folders:
-    #     confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
+    for bf in batch_folders:
+        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL')
+        saliency(img_size, bf, epochs=100, base_name='2d_FINAL')
+        test_result(img_size, bf, epochs=100, base_name='2d_FINAL')
 
 
 
