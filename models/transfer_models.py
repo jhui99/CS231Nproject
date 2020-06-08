@@ -330,7 +330,7 @@ def main():
     labels = ['low income', 'medium income', 'high income']
     for bf in batch_folders:
         model = get_vgg_transfer_model((224, 224, 3), len(labels))
-        train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, base_name='2d_FINAL_dropout')
+        train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
     # for bf in batch_folders[:1]:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='ZZ', base_name='2d_75k_FINAL')
@@ -339,7 +339,7 @@ def main():
     # confusion_test(img_size, 'GA_3_sat')
     # saliency_test(img_size, 'GA_3_sat')
     for bf in batch_folders:
-        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL_dropout')
+        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
     # for bf in batch_folders:
     #     confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
 
