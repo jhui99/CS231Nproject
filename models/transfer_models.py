@@ -61,7 +61,7 @@ def get_vgg_transfer_model_dropout(img_shape, num_labels, unfreeze_layer):
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
     dense = tf.keras.layers.Dense(150, activation='relu')
     dense2 = tf.keras.layers.Dense(150, activation='relu')
-    drop = tf.keras.layers.Dropout(0.2)
+    drop = tf.keras.layers.Dropout(0.4)
     prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
 
     model = tf.keras.Sequential([
@@ -240,6 +240,7 @@ def conf(model, x, y):
 
 
 def confusion(img_size, batch_folder, epochs=100, forced_loc=None, base_name=''):
+    print('start plot')
     name = base_name + batch_folder + '_' + str(epochs) + '_epochs'
     model = get_vgg_transfer_model((224, 224, 3), 3)
     model.load_weights('weights/' + name + '_weights')
@@ -258,16 +259,28 @@ def confusion(img_size, batch_folder, epochs=100, forced_loc=None, base_name='')
     
     ind = ['Low', 'Medium', 'High']
     # remove diagonals since they are the # of correct assignments
-    conf_mat = tf.linalg.set_diag(conf_mat, [0, 0, 0])
-    conf_mat = tf.linalg.normalize(conf_mat, axis=1)
-    pd_conf = pd.DataFrame(conf_mat, index=ind, columns=ind).astype('int32')
+    # conf_mat = tf.linalg.set_diag(conf_mat, [0, 0, 0])
+    
+    print('raw conf mat')
+    print(conf_mat)
+    conf_mat = conf_mat.numpy().astype('float32')
+    row_sums = np.sum(conf_mat, axis=1)
+    for i in range(3):
+        conf_mat[i, :] = conf_mat[i, :] / row_sums[i]
+    pd_conf = pd.DataFrame(conf_mat, index=ind, columns=ind)
 
-    fig, ax = sn.heatmap(pd_conf, annot=True)
-    ax.title('Confusion Matrix')
-    ax.xlabel('Predicted Labels')
-    ax.ylabel('Actual Labels')
-    plt.show()
-    # plt.savefig('conf_mats/' + name + '_conf')
+
+    ax = plt.axes()
+    sn.heatmap(pd_conf, annot=True)
+    ax.set_title('Confusion Matrix')
+    plt.xlabel('Predicted Labels')
+    plt.ylabel('Actual Labels')
+    print('finished plot')
+    print(conf_mat)
+    print('row sums')
+    print(np.sum(conf_mat, axis=1))
+    plt.savefig('conf_mats/' + name + '_conf')
+    plt.clf()
 
 
 
@@ -321,7 +334,7 @@ def main():
     labels = ['low income', 'medium income', 'high income']
     # for bf in batch_folders:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='AZ', base_name='2d_FINAL')
+    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, base_name='2d_FINAL')
     # for bf in batch_folders[:1]:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='ZZ', base_name='2d_75k_FINAL')
@@ -329,7 +342,10 @@ def main():
     # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=50, steps_per_epoch=8, validation_steps=2, base_name='')
     # confusion_test(img_size, 'GA_3_sat')
     # saliency_test(img_size, 'GA_3_sat')
-    confusion(img_size, 'GA_3_sat', base_name='2d_FINAL')
+    for bf in batch_folders:
+        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL')
+    for bf in batch_folders:
+        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
 
 
 
