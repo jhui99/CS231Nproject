@@ -265,7 +265,7 @@ def confusion(img_size, batch_folder, epochs=100, forced_loc=None, base_name='')
         conf_mat[i, :] = conf_mat[i, :] / row_sums[i]
     pd_conf = pd.DataFrame(conf_mat, index=ind, columns=ind)
 
-
+    plt.clf()
     ax = plt.axes()
     sn.heatmap(pd_conf, annot=True)
     ax.set_title('Confusion Matrix')
@@ -278,12 +278,13 @@ def confusion(img_size, batch_folder, epochs=100, forced_loc=None, base_name='')
     plt.savefig('conf_mats/' + name + '_conf')
     plt.clf()
 
-
-
-def saliency_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name=''):
+def saliency(img_size, batch_folder, epochs=50, forced_loc=None, base_name=''):
     name = base_name + batch_folder + '_' + str(epochs) + '_epochs'
     model = get_vgg_transfer_model((224, 224, 3), 3)
     model.load_weights('weights/' + name + '_weights')
+    vis_path = 'vis/' + name
+    if not os.path.isdir(vis_path):
+        os.makedirs(vis_path)
     train_gen, val_gen, test_gen = get_train_val_test(batch_folder, forced_loc=forced_loc, img_size=img_size)
 
     # Find the index of the to be visualized layer above
@@ -322,15 +323,39 @@ def saliency_test(img_size, batch_folder, epochs=50, forced_loc=None, base_name=
         axes[1].imshow(visualization)
         axes[1].set_title('Saliency map')
         fig.suptitle(f'Correct class = {labels[input_class]}, Predicted = {labels[pred_class]}')
-        plt.savefig('vis/testLoadModel2/' + name + '_saliency_ ' + str(i) + '.png')
+        plt.savefig(vis_path + '/' + str(i) + '.png')
+        plt.clf()
+
+def test_result(img_size, batch_folder, epochs=100, forced_loc=None, base_name='2d_60k_FINAL_dropout'):
+    name = base_name + batch_folder + '_' + str(epochs) + '_epochs'
+    model = get_vgg_transfer_model((224, 224, 3), 3)
+    model.load_weights('weights/' + name + '_weights')
+
+    train_gen, val_gen, test_gen = get_train_val_test(batch_folder, forced_loc=forced_loc, img_size=img_size)
+
+    DATA_SET_SIZES = {'GA_3_sat' : 6132, 'DC_1_sat' : 4252, 'RI_1_sat' : 3213}
+
+    sz = DATA_SET_SIZES[batch_folder]
+    num_batches = int((sz * 0.1) // 100)
+    corrects = 0
+    seen = 0
+    for i in range(num_batches + 1):
+        x, y = next(val_gen())
+        pred = model.predict(x)
+        pred = np.argmax(pred, axis=1)
+        corrects += np.sum(y == pred)
+        seen += len(y)
+    acc = corrects / seen
+    print('test acc of {}: {}'.format(name, acc))
+
 
 def main():
     img_size = 224
     batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
     labels = ['low income', 'medium income', 'high income']
-    for bf in batch_folders:
-        model = get_vgg_transfer_model((224, 224, 3), len(labels))
-        train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
+    # for bf in batch_folders:
+    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
+    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
     # for bf in batch_folders[:1]:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='ZZ', base_name='2d_75k_FINAL')
@@ -338,8 +363,22 @@ def main():
     # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=50, steps_per_epoch=8, validation_steps=2, base_name='')
     # confusion_test(img_size, 'GA_3_sat')
     # saliency_test(img_size, 'GA_3_sat')
+    # for bf in batch_folders:
+        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
+        # saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
+        # test_result(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
+
     for bf in batch_folders:
-        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
+        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
+        # saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
+        test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
+
+    for bf in batch_folders:
+        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
+        # saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
+        test_result(img_size, bf, epochs=100, base_name='2d_FINAL')
+
+    
     # for bf in batch_folders:
     #     confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
 
