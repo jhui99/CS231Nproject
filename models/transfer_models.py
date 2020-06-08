@@ -32,8 +32,8 @@ def get_vgg_transfer_model(img_shape, num_labels):
                                                 weights='imagenet')
     VGG16_MODEL.trainable=False
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
-    dense = tf.keras.layers.Dense(150, activation='relu')
-    dense2 = tf.keras.layers.Dense(150, activation='relu')
+    dense = tf.keras.layers.Dense(150, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
+    dense2 = tf.keras.layers.Dense(150, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
     prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax', name='visualized_layer')
 
     model = tf.keras.Sequential([
@@ -50,25 +50,21 @@ def get_vgg_transfer_model(img_shape, num_labels):
 
     return model
 
-def get_vgg_transfer_model_dropout(img_shape, num_labels, unfreeze_layer):
+def get_vgg_transfer_model_reg(img_shape, num_labels):
     VGG16_MODEL=tf.keras.applications.VGG16(input_shape=img_shape,
                                                 include_top=False,
                                                 weights='imagenet')
     VGG16_MODEL.trainable=True
-    for layer in VGG16_MODEL.layers[:unfreeze_layer]:
-        layer.trainable = False
 
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
-    dense = tf.keras.layers.Dense(150, activation='relu')
-    dense2 = tf.keras.layers.Dense(150, activation='relu')
-    drop = tf.keras.layers.Dropout(0.4)
+    dense = tf.keras.layers.Dense(150, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.1))
+    dense2 = tf.keras.layers.Dense(150, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.1))
     prediction_layer = tf.keras.layers.Dense(num_labels,activation='softmax')
 
     model = tf.keras.Sequential([
         VGG16_MODEL,
         global_average_layer,
         dense,
-        drop,
         dense2,
         prediction_layer
     ])
@@ -332,9 +328,9 @@ def main():
     img_size = 224
     batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
     labels = ['low income', 'medium income', 'high income']
-    # for bf in batch_folders:
-    #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, base_name='2d_FINAL')
+    for bf in batch_folders:
+        model = get_vgg_transfer_model((224, 224, 3), len(labels))
+        train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, base_name='2d_FINAL_dropout')
     # for bf in batch_folders[:1]:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='ZZ', base_name='2d_75k_FINAL')
@@ -343,9 +339,9 @@ def main():
     # confusion_test(img_size, 'GA_3_sat')
     # saliency_test(img_size, 'GA_3_sat')
     for bf in batch_folders:
-        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL')
-    for bf in batch_folders:
-        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
+        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL_dropout')
+    # for bf in batch_folders:
+    #     confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
 
 
 
