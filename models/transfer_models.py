@@ -22,10 +22,6 @@ import pandas as pd
 
 from PIL import Image
 
-
-#  THINGS TO TRY
-# Conv-MaxPool-Dropout
-
 def get_vgg_transfer_model(img_shape, num_labels):
     VGG16_MODEL=tf.keras.applications.VGG16(input_shape=img_shape,
                                                 include_top=False,
@@ -349,40 +345,34 @@ def main():
     img_size = 224
     batch_folders = ['GA_3_sat', 'DC_1_sat', 'RI_1_sat']
     labels = ['low income', 'medium income', 'high income']
+
+    # Training Code
     # for bf in batch_folders:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
     # for bf in batch_folders[:1]:
     #     model = get_vgg_transfer_model((224, 224, 3), len(labels))
     #     train_and_eval(model=model, img_size=img_size, batch_folder=bf, epochs=100, steps_per_epoch=16, validation_steps=2, forced_loc='ZZ', base_name='2d_75k_FINAL')
-    # model = get_vgg_transfer_model((224, 224, 3), len(labels))
-    # train_and_eval(model=model, img_size=img_size, batch_folder='GA_3_sat', epochs=50, steps_per_epoch=8, validation_steps=2, base_name='')
-    # confusion_test(img_size, 'GA_3_sat')
-    # saliency_test(img_size, 'GA_3_sat')
-    # for bf in batch_folders:
-        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
-        # saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
-        # test_result(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
 
-    # for bf in batch_folders:
-    #     confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
-    #     saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
-        # test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
-
-    # for bf in batch_folders:
-    #     confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL_dropout')
-    #     saliency(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
-        # test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
-
-    
-    # for bf in batch_folders:
-    #     confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL')
-        # saliency(img_size, bf, epochs=100, base_name='2d_FINAL')
-        # test_result(img_size, bf, epochs=100, base_name='2d_FINAL')
+    # Visualization Code
+    for bf in batch_folders:
+        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
+        saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
+        test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
 
     for bf in batch_folders:
-        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
-        # saliency(img_size, bf, epochs=100, forced_loc='ZZ', base_name='2d_75k_FINAL')
+        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL_dropout')
+        saliency(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
+        test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
+    
+    for bf in batch_folders:
+        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL')
+        saliency(img_size, bf, epochs=100, base_name='2d_FINAL')
+        test_result(img_size, bf, epochs=100, base_name='2d_FINAL')
+
+    for bf in batch_folders:
+        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
+        saliency(img_size, bf, epochs=100, forced_loc='ZZ', base_name='2d_75k_FINAL')
         test_result(img_size, bf, epochs=100, forced_loc='ZZ', base_name='2d_75k_FINAL')
 
 
