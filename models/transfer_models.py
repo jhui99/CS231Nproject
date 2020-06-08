@@ -332,13 +332,14 @@ def test_result(img_size, batch_folder, epochs=100, forced_loc=None, base_name='
     corrects = 0
     seen = 0
     for i in range(num_batches + 1):
-        x, y = next(val_gen())
+        x, y = next(test_gen())
         pred = model.predict(x)
         pred = np.argmax(pred, axis=1)
         corrects += np.sum(y == pred)
         seen += len(y)
     acc = corrects / seen
     print('test acc of {}: {}'.format(name, acc))
+
 
 
 def main():
@@ -356,23 +357,23 @@ def main():
 
     # Visualization Code
     for bf in batch_folders:
-        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
-        saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
+        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_60k_FINAL_dropout')
+        # saliency(img_size, bf, epochs=100, forced_loc='AZ', base_name='2d_60k_FINAL_dropout')
         test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
 
     for bf in batch_folders:
-        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL_dropout')
-        saliency(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
+        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL_dropout')
+        # saliency(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
         test_result(img_size, bf, epochs=100, base_name='2d_FINAL_dropout')
     
     for bf in batch_folders:
-        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL')
-        saliency(img_size, bf, epochs=100, base_name='2d_FINAL')
+        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_FINAL')
+        # saliency(img_size, bf, epochs=100, base_name='2d_FINAL')
         test_result(img_size, bf, epochs=100, base_name='2d_FINAL')
 
     for bf in batch_folders:
-        confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
-        saliency(img_size, bf, epochs=100, forced_loc='ZZ', base_name='2d_75k_FINAL')
+        # confusion(img_size=img_size, batch_folder=bf, epochs=100, base_name='2d_75k_FINAL')
+        # saliency(img_size, bf, epochs=100, forced_loc='ZZ', base_name='2d_75k_FINAL')
         test_result(img_size, bf, epochs=100, forced_loc='ZZ', base_name='2d_75k_FINAL')
 
 
